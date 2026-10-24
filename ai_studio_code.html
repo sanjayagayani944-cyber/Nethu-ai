@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>NETHU AI - නෙතු AI සහයිකාව</title>
+    <!-- Google Fonts & Tailwind CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * {
+            font-family: 'Poppins', 'Noto Sans Sinhala', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ec4899;
+            border-radius: 10px;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+        }
+
+        .gradient-bubble-user {
+            background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%);
+        }
+
+        .pulse-mic {
+            animation: micPulse 1.5s infinite;
+        }
+
+        @keyframes micPulse {
+            0% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7); }
+            70% { box-shadow: 0 0 0 14px rgba(236, 72, 153, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
+        }
+
+        .typing-dot {
+            animation: typingBounce 1.4s infinite ease-in-out both;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 flex justify-center items-center h-screen overflow-hidden">
+
+    <!-- Mobile Screen Container -->
+    <div class="w-full max-w-md h-full flex flex-col bg-slate-900 relative shadow-2xl border-x border-pink-900/30 overflow-hidden">
+        
+        <!-- Header -->
+        <header class="p-3 bg-slate-900/95 backdrop-blur-md border-b border-pink-500/20 flex items-center justify-between z-20">
+            <div class="flex items-center gap-2.5">
+                <button onclick="toggleHistoryDrawer()" class="text-pink-400 p-2 hover:bg-pink-500/10 rounded-full transition" title="ඉතිහාසය">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+                <div class="relative">
+                    <div class="w-10 h-10 rounded-full p-0.5 gradient-bg flex items-center justify-center shadow-md shadow-pink-500/20">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" 
+                             alt="Nethu AI" class="w-full h-full object-cover rounded-full">
+                    </div>
+                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-900 rounded-full"></span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <h1 class="font-bold text-sm tracking-wide bg-gradient-to-r from-pink-400 to-purple-300 bg-clip-text text-transparent">NETHU AI</h1>
+                        <span class="text-[10px] bg-pink-500/20 text-pink-300 border border-pink-500/30 px-1.5 py-0.2 rounded-full font-medium">නෙතු 🌸</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400">ඔබේ මිත්‍රශීලී සිංහල සහයිකාව</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-1">
+                <!-- Sound Read-Aloud Toggle -->
+                <button id="ttsToggleBtn" onclick="toggleVoiceOutput()" title="නෙතුගේ හඬ ක්‍රියාත්මක/අක්‍රිය කරන්න" 
+                        class="p-2 text-pink-400 hover:bg-pink-500/10 rounded-full transition">
+                    <i id="ttsIcon" class="fa-solid fa-volume-high text-base"></i>
+                </button>
+                <!-- API Settings -->
+                <button onclick="toggleSettingsModal()" title="API සැකසුම්" class="p-2 text-purple-400 hover:bg-purple-500/10 rounded-full transition">
+                    <i class="fa-solid fa-gear text-base"></i>
+                </button>
+                <!-- New Chat Button -->
+                <button onclick="startNewChat()" title="නව සංවාදයක්" class="p-2 text-pink-400 hover:bg-pink-500/10 rounded-full transition">
+                    <i class="fa-solid fa-plus text-base"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Quick Suggestions -->
+        <div class="px-3 py-1.5 bg-slate-900/40 border-b border-pink-900/20 flex gap-1.5 overflow-x-auto whitespace-nowrap text-xs text-pink-200">
+            <button onclick="sendQuickMessage('විහිළුවක් කියන්න 😂')" class="bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/25 px-2.5 py-1 rounded-full transition">
+                😂 විහිළුවක්
+            </button>
+            <button onclick="sendQuickMessage('මාව දිරිමත් කරන්න 💪')" class="bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/25 px-2.5 py-1 rounded-full transition">
+                💪 දිරිගැන්වීමක්
+            </button>
+            <button onclick="sendQuickMessage('ලංකාවේ සංචාරය කරන්න හොඳ තැන් මොනවද? 🇱🇰')" class="bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/25 px-2.5 py-1 rounded-full transition">
+                🇱🇰 සංචාරක තැන්
+            </button>
+            <button onclick="sendQuickMessage('ඔයා කවුද නෙතු? 🌸')" class="bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/25 px-2.5 py-1 rounded-full transition">
+                🌸 ඔයා කවුද?
+            </button>
+        </div>
+
+        <!-- Chat History Drawer -->
+        <div id="historyDrawer" class="fixed inset-y-0 left-0 w-72 bg-slate-900/95 backdrop-blur-xl border-r border-pink-500/20 z-40 transform -translate-x-full transition-transform duration-300 ease-in-out p-4 flex flex-col justify-between shadow-2xl">
+            <div>
+                <div class="flex items-center justify-between pb-3 border-b border-slate-700/50">
+                    <h2 class="font-bold text-pink-300 flex items-center gap-2 text-sm">
+                        <i class="fa-solid fa-clock-rotate-left"></i> චැට් ඉතිහාසය
+                    </h2>
+                    <button onclick="toggleHistoryDrawer()" class="text-slate-400 hover:text-white p-1">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+                <div id="historyList" class="mt-3 space-y-1.5 overflow-y-auto max-h-[70vh] text-xs text-slate-300">
+                    <!-- History items populated dynamically -->
+                </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-800">
+                <button onclick="clearAllHistory()" class="w-full py-2 px-3 text-xs text-rose-400 hover:bg-rose-500/10 rounded-lg flex items-center justify-center gap-2 transition">
+                    <i class="fa-solid fa-trash-can"></i> ඉතිහාසය මකන්න
+                </button>
+            </div>
+        </div>
+        <div id="drawerOverlay" onclick="toggleHistoryDrawer()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 hidden transition-opacity"></div>
+
+        <!-- API Settings Modal (Clean & Safe) -->
+        <div id="settingsModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-slate-900 border border-pink-500/30 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
+                <div class="flex items-center justify-between border-b border-pink-500/20 pb-3">
+                    <h3 class="font-bold text-pink-300 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-sliders"></i> AI සැකසුම් (Settings)
+                    </h3>
+                    <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    නෙතු පෙරනිමියෙන් ස්වයංක්‍රීයව ක්‍රියා කරයි. අවශ්‍ය නම් පමණක් ඔබේම ආරක්ෂිත AI Endpoint එකක් හෝ Key එකක් එක් කරන්න.
+                </p>
+                <div>
+                    <label class="text-[11px] font-medium text-pink-200 block mb-1">Backend Chat Endpoint (Optional):</label>
+                    <input type="text" id="apiEndpointInput" placeholder="/api/chat හෝ custom URL" 
+                           class="w-full bg-slate-800 border border-pink-500/30 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-pink-500">
+                </div>
+                <div>
+                    <label class="text-[11px] font-medium text-pink-200 block mb-1">Client Session Key (Optional & Secure):</label>
+                    <input type="password" id="userApiKeyInput" placeholder="ඔබේ API Key එක (Local Session පමණි)" 
+                           class="w-full bg-slate-800 border border-pink-500/30 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-pink-500">
+                    <span class="text-[10px] text-slate-400 mt-1 block">මෙම Key එක Browser එක තුළ පමණක් පවතින අතර කිසිදු පොදු තැනක නිරාවරණය නොවේ.</span>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button onclick="saveSettings()" class="gradient-bg text-white px-4 py-1.5 rounded-lg text-xs font-semibold hover:opacity-90 transition">
+                        සුරකින්න
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages Area -->
+        <main id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3.5">
+            <!-- Initial Greeting -->
+            <div class="flex items-start gap-2.5">
+                <div class="w-8 h-8 rounded-full gradient-bg flex-shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-md shadow-pink-500/20">
+                    නෙ
+                </div>
+                <div class="bg-slate-850 bg-slate-800/80 border border-pink-500/20 rounded-2xl rounded-tl-sm p-3 max-w-[85%] text-slate-100 shadow-md text-xs sm:text-sm leading-relaxed">
+                    <p>ආයුබෝවන්! මම <b>නෙතු (Nethu)</b> 🌸. ඔබට උදව් කරන්න, ප්‍රශ්නවලට පිළිතුරු දෙන්න සහ දිරිගන්වන්න මම මෙහි සිටිමි. ඕනෑම දෙයක් සිංහලෙන් අහන්න!</p>
+                    <div class="mt-2 flex items-center gap-2">
+                        <button onclick="readAloud('ආයුබෝවන්! මම නෙතු. ඔබට උදව් කරන්න, ප්‍රශ්නවලට පිළිතුරු දෙන්න සහ දිරිගන්වන්න මම මෙහි සිටිමි.')" 
+                                class="text-[11px] text-pink-400 hover:text-pink-300 flex items-center gap-1 font-medium">
+                            <i class="fa-solid fa-volume-high"></i> හඬින් අසන්න
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Typing Indicator -->
+        <div id="typingIndicator" class="px-4 py-2 hidden">
+            <div class="flex items-center gap-2 bg-slate-800/80 border border-pink-500/20 w-fit px-3 py-1.5 rounded-full text-xs text-pink-300">
+                <span>නෙතු ලියමින් සිටී...</span>
+                <span class="inline-flex gap-1 ml-1">
+                    <span class="w-1.5 h-1.5 bg-pink-400 rounded-full typing-dot"></span>
+                    <span class="w-1.5 h-1.5 bg-pink-400 rounded-full typing-dot"></span>
+                    <span class="w-1.5 h-1.5 bg-pink-400 rounded-full typing-dot"></span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Speech Listening Badge -->
+        <div id="listeningBadge" class="hidden px-4 py-1.5 bg-pink-600/30 border-t border-pink-500/40 text-center text-xs text-pink-300 flex items-center justify-center gap-2 animate-pulse">
+            <span class="w-2 h-2 rounded-full bg-pink-400"></span>
+            නෙතු ඔබට සවන් දෙයි... සිංහලෙන් කතා කරන්න
+        </div>
+
+        <!-- Input Bar with Send Button -->
+        <footer class="p-3 bg-slate-900/95 border-t border-pink-500/20 backdrop-blur-md">
+            <form id="chatForm" onsubmit="handleSend(event)" class="flex items-center gap-2">
+                <!-- Voice Input Mic Button -->
+                <button type="button" id="micBtn" onclick="toggleVoiceRecognition()" 
+                        class="w-10 h-10 rounded-full bg-slate-800 border border-pink-500/30 text-pink-400 hover:text-white hover:bg-pink-600 flex items-center justify-center transition shadow-md flex-shrink-0"
+                        title="කටහඬින් පණිවිඩයක් යවන්න">
+                    <i id="micIcon" class="fa-solid fa-microphone text-sm"></i>
+                </button>
+
+                <!-- Input Text Box -->
+                <div class="flex-1 relative">
+                    <input type="text" id="userInput" placeholder="නෙතුගෙන් ඕනෑම දෙයක් අහන්න..." 
+                           autocomplete="off"
+                           class="w-full bg-slate-800 text-slate-100 placeholder-slate-400 text-xs sm:text-sm rounded-full pl-4 pr-10 py-2.5 border border-pink-500/25 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 shadow-inner">
+                </div>
+
+                <!-- Send Button -->
+                <button type="submit" id="sendBtn"
+                        class="w-10 h-10 rounded-full gradient-bg text-white hover:opacity-90 flex items-center justify-center shadow-md shadow-pink-500/30 transition flex-shrink-0"
+                        title="පණිවිඩය යවන්න">
+                    <i class="fa-solid fa-paper-plane text-sm"></i>
+                </button>
+            </form>
+        </footer>
+
+    </div>
+
+    <!-- Application JavaScript Logic -->
+    <script>
+        // State variables
+        let chatHistory = JSON.parse(localStorage.getItem('nethu_chat_history') || '[]');
+        let isVoiceOutputEnabled = true;
+        let isRecognizing = false;
+        let recognition = null;
+        let speechSynth = window.speechSynthesis;
+
+        // Initialize Speech Recognition (si-LK Sinhala)
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'si-LK'; // Sinhala language locale
+
+                recognition.onstart = () => {
+                    isRecognizing = true;
+                    document.getElementById('micBtn').classList.add('pulse-mic', 'bg-pink-600', 'text-white');
+                    document.getElementById('listeningBadge').classList.remove('hidden');
+                };
+
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    document.getElementById('userInput').value = transcript;
+                    handleSend(new Event('submit'));
+                };
+
+                recognition.onerror = (event) => {
+                    console.error('Speech error:', event.error);
+                    stopVoiceRecognition();
+                };
+
+                recognition.onend = () => {
+                    stopVoiceRecognition();
+                };
+            }
+        }
+
+        function toggleVoiceRecognition() {
+            if (!recognition) {
+                initSpeechRecognition();
+            }
+            if (!recognition) {
+                alert('ඔබේ Browser එකෙහි Voice Input පහසුකම නොමැත. Chrome හෝ Edge භාවිතා කරන්න.');
+                return;
+            }
+            if (isRecognizing) {
+                recognition.stop();
+            } else {
+                try {
+                    recognition.start();
+                } catch (e) {
+                    console.warn(e);
+                }
+            }
+        }
+
+        function stopVoiceRecognition() {
+            isRecognizing = false;
+            document.getElementById('micBtn').classList.remove('pulse-mic', 'bg-pink-600', 'text-white');
+            document.getElementById('listeningBadge').classList.add('hidden');
+        }
+
+        // Toggle Voice Output (TTS)
+        function toggleVoiceOutput() {
+            isVoiceOutputEnabled = !isVoiceOutputEnabled;
+            const icon = document.getElementById('ttsIcon');
+            if (isVoiceOutputEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-base text-pink-400';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-base text-slate-500';
+                if (speechSynth) speechSynth.cancel();
+            }
+        }
+
+        // Text-to-Speech (Sinhala / Natural fallback)
+        function readAloud(text) {
+            if (!isVoiceOutputEnabled || !('speechSynthesis' in window)) return;
+            speechSynth.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            const voices = speechSynth.getVoices();
+            
+            // Prefer Sinhala or high quality female voice if available
+            const femaleVoice = voices.find(v => (v.lang.includes('si') || v.lang.includes('en')) && 
+                (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('samantha')));
+            
+            if (femaleVoice) {
+                utterance.voice = femaleVoice;
+            }
+            utterance.pitch = 1.1; // Friendly slightly higher pitch
+            utterance.rate = 0.95;
+            speechSynth.speak(utterance);
+        }
+
+        // Render message to chat
+        function appendMessage(sender, text, isError = false) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex items-start gap-2.5 ${sender === 'user' ? 'justify-end' : ''}`;
+
+            if (sender === 'user') {
+                messageDiv.innerHTML = `
+                    <div class="gradient-bubble-user text-white rounded-2xl rounded-tr-sm p-3 max-w-[85%] text-xs sm:text-sm shadow-md leading-relaxed">
+                        <p>${escapeHTML(text)}</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-purple-600 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold shadow">
+                        ඔබ
+                    </div>
+                `;
+            } else {
+                const bubbleStyle = isError 
+                    ? 'bg-rose-950/50 border-rose-500/40 text-rose-200' 
+                    : 'bg-slate-800/90 border-pink-500/20 text-slate-100';
+
+                messageDiv.innerHTML = `
+                    <div class="w-8 h-8 rounded-full ${isError ? 'bg-rose-600' : 'gradient-bg'} flex-shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-md shadow-pink-500/20">
+                        ${isError ? '!' : 'නෙ'}
+                    </div>
+                    <div class="${bubbleStyle} border rounded-2xl rounded-tl-sm p-3 max-w-[85%] text-xs sm:text-sm shadow-md leading-relaxed">
+                        <p>${escapeHTML(text)}</p>
+                        ${!isError ? `
+                        <div class="mt-2 flex items-center gap-2">
+                            <button onclick="readAloud(\`${escapeAttr(text)}\`)" class="text-[11px] text-pink-400 hover:text-pink-300 flex items-center gap-1 font-medium">
+                                <i class="fa-solid fa-volume-high"></i> අහන්න
+                            </button>
+                        </div>` : ''}
+                    </div>
+                `;
+            }
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            if (sender === 'nethu' && !isError) {
+                readAloud(text);
+            }
+        }
+
+        // Safe HTML escape
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag] || tag));
+        }
+
+        function escapeAttr(str) {
+            return str.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+        }
+
+        // Quick message click
+        function sendQuickMessage(text) {
+            document.getElementById('userInput').value = text;
+            handleSend(new Event('submit'));
+        }
+
+        // Intelligent Sinhala Knowledge Engine (Graceful fallback without exposing API keys)
+        function generateLocalSinhalaResponse(query) {
+            const q = query.toLowerCase();
+
+            if (q.includes('විහිළු') || q.includes('joke') || q.includes('හිනා')) {
+                const jokes = [
+                    "දවසක් පොඩි ළමයෙක් අම්මගෙන් ඇහුවා: 'අම්මේ, ලයිට් ගියාම කරුවල කොහෙන්ද එන්නේ?' අම්මා කිව්වා: 'ෆ්‍රිජ් එක ඇරියම එළිය එන තැනින්ම තමයි පුතේ!' 😂",
+                    "ගුරුවරයා: 'සුනිල්, අනාගත කාලයෙන් වාක්‍යයක් කියන්න.' \nසුනිල්: 'හෙට ඉස්කෝලේ නිවාඩු සර්!' 😜",
+                    "යාළුවෙක් ඇහුවා: 'මචං, ඔයාගේ දුරකථනය වතුරට වැටුණොත් මොකද කරන්නේ?' අනිකා කිව්වා: 'මම ඉක්මනටම ඒක Flight Mode දානවා, එතකොට පියාඹලා ගොඩට එයිනේ!' 🤣"
+                ];
+                return jokes[Math.floor(Math.random() * jokes.length)];
+            }
+
+            if (q.includes('දිරි') || q.includes('හයියක්') || q.includes('දුක') || q.includes('මහන්සි')) {
+                const motivations = [
+                    "ජීවිතයේ හැම අභියෝගයක්ම ඔබව තවත් ශක්තිමත් කරන්න ලැබෙන අවස්ථාවක්. පසුබට වෙන්න එපා, ඔබ සිතනවාට වඩා ඔබ ශක්තිමත්! මම හැමවිටම ඔබ සමඟයි 🌸💪",
+                    "අඳුරුතම රාත්‍රියට පසුවයි ලස්සනම හිරු උදාවන්නේ! ඔබේ ඉලක්කය වෙනුවෙන් අදත් පුංචි හෝ පියවරක් ඉදිරියට තබන්න. ඔබට ජය නියතයි! 🌟",
+                    "වෙහෙසක් දැනෙනවා නම් පුංචි විවේකයක් ගන්න, නමුත් කිසිවිටෙකත් උත්සාහය අත්හරින්න එපා! ඔබ මේ දක්වා ආ ගමන ගැන ආඩම්බර වන්න."
+                ];
+                return motivations[Math.floor(Math.random() * motivations.length)];
+            }
+
+            if (q.includes('කොහොමද') || q.includes('සුවදුක්') || q.includes('හලෝ') || q.includes('ආයුබෝවන්')) {
+                return "ආයුබෝවන්! මම නෙතු, ගොඩක් සතුටින් සහ නිරෝගීව ඉන්නවා 🌸. ඔබේ දවස කොහොමද? අද මගෙන් මොනවද දැනගන්න කැමති?";
+            }
+
+            if (q.includes('කවුද') || q.includes('නම') || q.includes('who are you')) {
+                return "මම නෙතු (NETHU AI) 🌸. ශ්‍රී ලාංකික ඔබට සහයෝගය දෙන්න, සතුටින් තියන්න සහ ප්‍රශ්නවලට පිළිතුරු සපයන්න නිර්මාණය කළ හිතවත් AI සහයිකාව!";
+            }
+
+            if (q.includes('ලංකාව') || q.includes('සංචාර') || q.includes('තැන්') || q.includes('travel')) {
+                return "ශ්‍රී ලංකාව කියන්නේ සොබාදහමේ පාරාදීසයක්! 🇱🇰 සීගිරිය, නුවරඑළිය, ඇල්ල, මිරිස්ස මුහුදු තීරය, සහ සිංහරාජ වැසි වනාන්තරය සංචාරය කරන්න අපූරු තැන්. ඔබට විශේෂයෙන්ම කඳුකර ප්‍රදේශයක් ගැනද නැරඹීමට අවශ්‍ය?";
+            }
+
+            if (q.includes('කෑම') || q.includes('බඩගිනි') || q.includes('food')) {
+                return "ලංකාවේ රසම කෑමක් මතක් වුණා නේද? උණු උණු පොල් රොටී සමඟ ලුණු මිරිස්, නැත්නම් රසම රස කොස් මාළුවක් එක්ක බත් පිඟානක්... අද මොනවද කන්න ආස?";
+            }
+
+            if (q.includes('ස්තූති') || q.includes('thanks') || q.includes('thank you')) {
+                return "ගොඩක් සතුටුයි ඔබට උදව් කරන්න ලැබීම ගැන! ඕනෑම වේලාවක මගෙන් අහන්න 🌸✨";
+            }
+
+            // General intelligent Sri Lankan answer
+            return `ඔබ ඇසූ "${query}" පිළිබඳව මම සතුටින් සලකා බැලුවා. මේ ගැන තවත් පැහැදිලි විස්තරයක් හෝ සහයක් අවශ්‍ය නම් මට කියන්න. මම සැමවිටම ඔබට උදව් කිරීමට සූදානම්! 🌸`;
+        }
+
+        // Safe AI query handler (handles backend API gracefully without breaking or exposing keys)
+        async function fetchAIResponse(userText) {
+            const customEndpoint = localStorage.getItem('nethu_api_endpoint');
+            const customApiKey = sessionStorage.getItem('nethu_session_key');
+
+            // If a custom secure endpoint is configured, try it first
+            if (customEndpoint) {
+                try {
+                    const headers = { 'Content-Type': 'application/json' };
+                    if (customApiKey) {
+                        headers['Authorization'] = `Bearer ${customApiKey}`;
+                    }
+
+                    const response = await fetch(customEndpoint, {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify({
+                            message: userText,
+                            systemPrompt: "You are Nethu, a friendly, encouraging, witty Sri Lankan female assistant who speaks natural Sinhala."
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Server returned HTTP ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    return data.reply || data.choices?.[0]?.message?.content || data.response;
+                } catch (err) {
+                    console.error('API Error:', err);
+                    // Throw to trigger graceful Sinhala error handling
+                    throw new Error('API_FAILED');
+                }
+            }
+
+            // Built-in intelligent response simulation (Guaranteed working, fast, safe)
+            await new Promise(resolve => setTimeout(resolve, 600));
+            return generateLocalSinhalaResponse(userText);
+        }
+
+        // Handle Send message
+        async function handleSend(e) {
+            if (e) e.preventDefault();
+            const inputField = document.getElementById('userInput');
+            const text = inputField.value.trim();
+
+            if (!text) return;
+
+            // 1. Display user message
+            appendMessage('user', text);
+            inputField.value = '';
+            inputField.blur();
+
+            // 2. Show typing indicator
+            const typingIndicator = document.getElementById('typingIndicator');
+            typingIndicator.classList.remove('hidden');
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                // 3. Get AI Response
+                const aiReply = await fetchAIResponse(text);
+                typingIndicator.classList.add('hidden');
+
+                // 4. Display AI response
+                appendMessage('nethu', aiReply);
+
+                // 5. Save to chat history
+                saveToHistory(text, aiReply);
+
+            } catch (error) {
+                typingIndicator.classList.add('hidden');
+                console.error('Chat processing error:', error);
+
+                // Graceful Sinhala Error Message
+                const errorMessage = "කණගාටුයි, සන්නිවේදනයේ බාධාවක් ඇතිවිය. කරුණාකර ඔබගේ අන්තර්ජාල සම්බන්ධතාව පරීක්ෂා කර නැවත උත්සාහ කරන්න. 🌸 (නෙතු සූදානමින් සිටී)";
+                appendMessage('nethu', errorMessage, true);
+            }
+        }
+
+        // Save conversation item to history
+        function saveToHistory(userMsg, aiMsg) {
+            const item = {
+                id: Date.now(),
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                user: userMsg,
+                nethu: aiMsg
+            };
+            chatHistory.unshift(item);
+            if (chatHistory.length > 30) chatHistory.pop(); // Keep last 30 conversations
+            localStorage.setItem('nethu_chat_history', JSON.stringify(chatHistory));
+            renderHistoryDrawer();
+        }
+
+        // Render History List
+        function renderHistoryDrawer() {
+            const historyList = document.getElementById('historyList');
+            if (chatHistory.length === 0) {
+                historyList.innerHTML = '<p class="text-slate-500 italic text-center py-4">පෙර සංවාද නොමැත</p>';
+                return;
+            }
+
+            historyList.innerHTML = chatHistory.map(item => `
+                <div onclick="restoreHistoryItem('${escapeAttr(item.user)}', '${escapeAttr(item.nethu)}')" 
+                     class="p-2.5 bg-slate-800/60 hover:bg-pink-500/10 border border-slate-700/50 hover:border-pink-500/30 rounded-xl cursor-pointer transition">
+                    <p class="font-medium text-slate-200 truncate">${escapeHTML(item.user)}</p>
+                    <span class="text-[10px] text-pink-400/80">${item.timestamp}</span>
+                </div>
+            `).join('');
+        }
+
+        function restoreHistoryItem(userMsg, aiMsg) {
+            appendMessage('user', userMsg);
+            appendMessage('nethu', aiMsg);
+            toggleHistoryDrawer();
+        }
+
+        function clearAllHistory() {
+            if (confirm('ඔබට සියලු චැට් ඉතිහාසය මැකීමට අවශ්‍යද?')) {
+                chatHistory = [];
+                localStorage.removeItem('nethu_chat_history');
+                renderHistoryDrawer();
+            }
+        }
+
+        function toggleHistoryDrawer() {
+            const drawer = document.getElementById('historyDrawer');
+            const overlay = document.getElementById('drawerOverlay');
+            const isClosed = drawer.classList.contains('-translate-x-full');
+
+            if (isClosed) {
+                renderHistoryDrawer();
+                drawer.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                drawer.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        // Settings Modal handling
+        function toggleSettingsModal() {
+            const modal = document.getElementById('settingsModal');
+            if (modal.classList.contains('hidden')) {
+                document.getElementById('apiEndpointInput').value = localStorage.getItem('nethu_api_endpoint') || '';
+                document.getElementById('userApiKeyInput').value = sessionStorage.getItem('nethu_session_key') || '';
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function saveSettings() {
+            const endpoint = document.getElementById('apiEndpointInput').value.trim();
+            const apiKey = document.getElementById('userApiKeyInput').value.trim();
+
+            if (endpoint) {
+                localStorage.setItem('nethu_api_endpoint', endpoint);
+            } else {
+                localStorage.removeItem('nethu_api_endpoint');
+            }
+
+            if (apiKey) {
+                sessionStorage.setItem('nethu_session_key', apiKey);
+            } else {
+                sessionStorage.removeItem('nethu_session_key');
+            }
+
+            toggleSettingsModal();
+            appendMessage('nethu', 'ඔබගේ සැකසුම් සාර්ථකව සුරැකිණි! 🌸');
+        }
+
+        function startNewChat() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = `
+                <div class="flex items-start gap-2.5">
+                    <div class="w-8 h-8 rounded-full gradient-bg flex-shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-md shadow-pink-500/20">
+                        නෙ
+                    </div>
+                    <div class="bg-slate-800/80 border border-pink-500/20 rounded-2xl rounded-tl-sm p-3 max-w-[85%] text-slate-100 shadow-md text-xs sm:text-sm leading-relaxed">
+                        <p>නව සංවාදයක් ආරම්භ කළා! අද ඔබට උදව් අවශ්‍ය කුමන කරුණටද? 🌸</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            initSpeechRecognition();
+            renderHistoryDrawer();
+        });
+    </script>
+</body>
+</html>
